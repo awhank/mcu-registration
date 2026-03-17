@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pendaftaran MCU</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -212,10 +215,31 @@ const participants = [
   {id:'3271013001940030',name:'Diana Sari'},
 ];
 
-let registrations = JSON.parse(localStorage.getItem('mcu_reg') || '[]');
+//let registrations = JSON.parse(localStorage.getItem('mcu_reg') || '[]');
+const SUPABASE_URL = 'https://supabase.com/dashboard/project/fbzskrafcqedeflhfdgj';   // ganti dengan URL Anda
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZienNrcmFmY3FlZGVmbGhmZGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODU0MjcsImV4cCI6MjA4OTI2MTQyN30.5zuxZPXHWBxkSQo_jQlHqSxqVs1gw9Y_EnpRdkD2f4Y';                       // ganti dengan anon key Anda
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let registrations = [];
+
+async function loadRegistrations() {
+  const { data, error } = await sb.from('registrations').select('*');
+  if (!error) {
+    registrations = data.map(r => ({
+      id: r.participant_id,
+      name: r.name,
+      date: r.date
+    }));
+  }
+  renderDates();
+  checkSubmit();
+}
+
+loadRegistrations();
+
 let selP = null, selD = null, curFilter = 'all';
 
-function save() { localStorage.setItem('mcu_reg', JSON.stringify(registrations)); }
+//function save() { localStorage.setItem('mcu_reg', JSON.stringify(registrations)); }
 function qDate(d) { return registrations.filter(r=>r.date===d).length; }
 
 function renderDates() {
@@ -277,17 +301,54 @@ document.addEventListener('click', e => {
     document.getElementById('ddl').style.display = 'none';
 });
 
-function submitForm() {
-  if(!selP || !selD) return;
-  if(registrations.find(r=>r.id===selP.id)) { alert('Peserta sudah terdaftar!'); return; }
-  if(qDate(selD)>=QUOTA) { alert('Kuota tanggal ini sudah penuh!'); return; }
-  const ts = new Date().toLocaleString('id-ID');
-  registrations.push({id:selP.id, name:selP.name, date:selD, ts});
-  save();
+// function submitForm() {
+//   if(!selP || !selD) return;
+//   if(registrations.find(r=>r.id===selP.id)) { alert('Peserta sudah terdaftar!'); return; }
+//   if(qDate(selD)>=QUOTA) { alert('Kuota tanggal ini sudah penuh!'); return; }
+//   const ts = new Date().toLocaleString('id-ID');
+//   registrations.push({id:selP.id, name:selP.name, date:selD, ts});
+//   save();
+//   document.getElementById('sbox').innerHTML = `<div class="success-box">
+//     <div class="success-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+//     <div class="success-title">Pendaftaran Berhasil!</div>
+//     <p class="success-detail"><strong>${selP.name}</strong> terdaftar untuk MCU tanggal <strong>${selD} ${MONTH}</strong>.</p>
+//     <button class="btn btn-outline" onclick="resetForm()">Daftar Peserta Lain</button>
+//   </div>`;
+//   document.getElementById('form-card').style.display = 'none';
+//   document.getElementById('sbox').style.display = 'block';
+// }
+
+async function submitForm() {
+  if (!selP || !selD) return;
+  if (registrations.find(r => r.id === selP.id)) {
+    alert('Peserta sudah terdaftar!'); return;
+  }
+  if (qDate(selD) >= QUOTA) {
+    alert('Kuota tanggal ini sudah penuh!'); return;
+  }
+
+  document.getElementById('sbtn').disabled = true;
+  document.getElementById('sbtn').textContent = 'Mendaftarkan...';
+
+  const { error } = await sb.from('registrations').insert({
+    participant_id: selP.id,
+    name: selP.name,
+    date: selD
+  });
+
+  if (error) {
+    alert('Gagal mendaftar: ' + error.message);
+    document.getElementById('sbtn').disabled = false;
+    document.getElementById('sbtn').textContent = 'Daftar Sekarang';
+    return;
+  }
+
+  registrations.push({ id: selP.id, name: selP.name, date: selD });
+
   document.getElementById('sbox').innerHTML = `<div class="success-box">
     <div class="success-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
     <div class="success-title">Pendaftaran Berhasil!</div>
-    <p class="success-detail"><strong>${selP.name}</strong> terdaftar untuk MCU tanggal <strong>${selD} ${MONTH}</strong>.</p>
+    <p class="success-detail"><strong>${selP.name}</strong> terdaftar untuk MCU tanggal <strong>${selD} Jul 2025</strong>.</p>
     <button class="btn btn-outline" onclick="resetForm()">Daftar Peserta Lain</button>
   </div>`;
   document.getElementById('form-card').style.display = 'none';
