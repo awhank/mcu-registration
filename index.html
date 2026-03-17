@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pendaftaran MCU</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f4;
+      --bg-success: #eaf3de;
+      --text: #1a1a1a;
+      --text-secondary: #6b6b68;
+      --text-success: #3b6d11;
+      --border: rgba(0,0,0,0.12);
+      --border-md: rgba(0,0,0,0.22);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font: system-ui, -apple-system, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1c;
+        --bg-secondary: #2a2a28;
+        --bg-success: #173404;
+        --text: #f0ede8;
+        --text-secondary: #9a9890;
+        --text-success: #c0dd97;
+        --border: rgba(255,255,255,0.12);
+        --border-md: rgba(255,255,255,0.22);
+      }
+    }
+    body { font-family: var(--font); font-size: 15px; color: var(--text); background: var(--bg-secondary); min-height: 100vh; display: flex; justify-content: center; padding: 2rem 1rem; }
+    .container { width: 100%; max-width: 520px; }
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header h1 { font-size: 20px; font-weight: 500; }
+    .header p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .tab-bar { display: flex; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 4px; margin-bottom: 1.25rem; gap: 4px; }
+    .tab { flex: 1; padding: 8px; font-size: 13px; cursor: pointer; border-radius: var(--radius-md); border: none; background: none; color: var(--text-secondary); font-family: var(--font); }
+    .tab.active { background: var(--bg-secondary); color: var(--text); font-weight: 500; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+    .select-wrapper { position: relative; }
+    .select-input { width: 100%; padding: 9px 12px; border: 0.5px solid var(--border-md); border-radius: var(--radius-md); font-size: 14px; background: var(--bg); color: var(--text); font-family: var(--font); }
+    .select-input:focus { outline: none; border-color: var(--text); }
+    .dropdown { position: absolute; z-index: 50; width: 100%; background: var(--bg); border: 0.5px solid var(--border-md); border-radius: var(--radius-md); max-height: 210px; overflow-y: auto; top: calc(100% + 4px); left: 0; box-shadow: 0 4px 16px rgba(0,0,0,0.08); display: none; }
+    .dropdown-item { padding: 9px 12px; cursor: pointer; }
+    .dropdown-item:hover { background: var(--bg-secondary); }
+    .dropdown-item .did { font-size: 13px; font-weight: 500; }
+    .dropdown-item .dname { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .dropdown-empty { padding: 10px 12px; font-size: 13px; color: var(--text-secondary); }
+    .info-box { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px 14px; }
+    .info-row { display: flex; justify-content: space-between; padding: 3px 0; }
+    .info-lbl { font-size: 12px; color: var(--text-secondary); }
+    .info-val { font-size: 13px; font-weight: 500; }
+    .date-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+    .date-card { border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 14px; cursor: pointer; text-align: center; background: var(--bg); }
+    .date-card:hover:not(.full) { border-color: var(--border-md); }
+    .date-card.selected { border: 2px solid var(--text); }
+    .date-card.full { opacity: 0.4; cursor: not-allowed; }
+    .date-day { font-size: 24px; font-weight: 500; }
+    .date-month { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .date-quota { font-size: 12px; margin-top: 8px; }
+    .q-ok { color: #3b6d11; }
+    .q-warn { color: #ba7517; }
+    .q-full { color: #a32d2d; }
+    .btn { width: 100%; padding: 10px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 0.5rem; font-family: var(--font); border: none; }
+    .btn-primary { background: var(--text); color: var(--bg); }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-outline { background: none; border: 0.5px solid var(--border-md); color: var(--text); margin-top: 12px; }
+    .success-box { background: var(--bg-success); border: 0.5px solid rgba(59,109,17,0.3); border-radius: var(--radius-lg); padding: 1.5rem; text-align: center; }
+    .success-icon { width: 44px; height: 44px; border-radius: 50%; background: #3b6d11; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; }
+    .success-title { font-size: 16px; font-weight: 500; color: var(--text-success); margin-bottom: 6px; }
+    .success-detail { font-size: 13px; color: var(--text-secondary); }
+    .stats-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; margin-bottom: 1.25rem; }
+    .stat-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; }
+    .stat-lbl { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+    .stat-val { font-size: 22px; font-weight: 500; }
+    .quota-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .quota-row:last-child { margin-bottom: 0; }
+    .quota-label { font-size: 13px; min-width: 70px; color: var(--text-secondary); }
+    .bar-bg { flex: 1; background: var(--bg-secondary); border-radius: 99px; height: 5px; }
+    .bar-fill { height: 5px; border-radius: 99px; }
+    .quota-count { font-size: 12px; min-width: 55px; text-align: right; color: var(--text-secondary); }
+    .filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+    .f-btn { font-size: 12px; padding: 4px 12px; border-radius: 99px; border: 0.5px solid var(--border); cursor: pointer; background: none; color: var(--text-secondary); font-family: var(--font); }
+    .f-btn.active { background: var(--text); color: var(--bg); border-color: transparent; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+    th { text-align: left; color: var(--text-secondary); font-weight: 400; padding: 6px 8px; border-bottom: 0.5px solid var(--border); font-size: 12px; }
+    td { padding: 8px 8px; border-bottom: 0.5px solid var(--border); }
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; }
+    .b11 { background: #E6F1FB; color: #0C447C; }
+    .b12 { background: #EAF3DE; color: #27500A; }
+    .b13 { background: #FAEEDA; color: #633806; }
+    .b14 { background: #FBEAF0; color: #72243E; }
+    .section-title { font-size: 14px; font-weight: 500; margin-bottom: 1rem; }
+    .empty-state { text-align: center; padding: 2rem; font-size: 13px; color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Pendaftaran Medical Check-Up</h1>
+    <p>Jadwal MCU: 11 – 14 Juli 2025 &nbsp;|&nbsp; Kuota 99 orang/hari</p>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('form')">Form Pendaftaran</button>
+    <button class="tab" onclick="switchTab('admin')">Admin / Rekap</button>
+  </div>
+
+  <div id="page-form" class="page active">
+    <div class="card" id="form-card">
+      <div class="form-group">
+        <label>No. Identitas / Nama Peserta</label>
+        <div class="select-wrapper" id="sw">
+          <input type="text" class="select-input" id="search" placeholder="Ketik No. Identitas atau nama..." autocomplete="off" />
+          <div class="dropdown" id="ddl"></div>
+        </div>
+      </div>
+      <div class="form-group" id="pinfo" style="display:none;">
+        <div class="info-box">
+          <div class="info-row"><span class="info-lbl">No. Identitas</span><span class="info-val" id="iid"></span></div>
+          <div class="info-row"><span class="info-lbl">Nama Lengkap</span><span class="info-val" id="iname"></span></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Pilih Tanggal MCU</label>
+        <div class="date-grid" id="dgrid"></div>
+      </div>
+      <button class="btn btn-primary" id="sbtn" disabled onclick="submitForm()">Daftar Sekarang</button>
+    </div>
+    <div id="sbox" style="display:none;"></div>
+  </div>
+
+  <div id="page-admin" class="page">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-lbl">Total terdaftar</div><div class="stat-val" id="s-total">0</div></div>
+      <div class="stat-card"><div class="stat-lbl">Sisa kuota</div><div class="stat-val" id="s-rem">396</div></div>
+      <div class="stat-card"><div class="stat-lbl">Total peserta</div><div class="stat-val" id="s-all">30</div></div>
+    </div>
+    <div class="card">
+      <p class="section-title">Kuota per tanggal</p>
+      <div id="qbars"></div>
+    </div>
+    <div class="card">
+      <p class="section-title">Daftar pendaftar</p>
+      <div class="filter-bar">
+        <button class="f-btn active" onclick="setFilter('all',this)">Semua</button>
+        <button class="f-btn" onclick="setFilter('11',this)">11 Jul</button>
+        <button class="f-btn" onclick="setFilter('12',this)">12 Jul</button>
+        <button class="f-btn" onclick="setFilter('13',this)">13 Jul</button>
+        <button class="f-btn" onclick="setFilter('14',this)">14 Jul</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead><tr>
+            <th style="width:32px;">#</th>
+            <th>No. Identitas</th>
+            <th>Nama Lengkap</th>
+            <th style="width:72px;">Tgl</th>
+          </tr></thead>
+          <tbody id="atbody"></tbody>
+        </table>
+        <p class="empty-state" id="empty-lbl">Belum ada pendaftar.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUOTA = 99;
+const DATES = [11,12,13,14];
+const MONTH = 'Jul 2025';
+const BAR_COLORS = ['#185FA5','#3B6D11','#BA7517','#993556'];
+
+const participants = [
+  {id:'3271010101800001',name:'Ahmad Fauzi'},
+  {id:'3271010201790002',name:'Siti Rahayu'},
+  {id:'3271010301850003',name:'Budi Santoso'},
+  {id:'3271010401920004',name:'Dewi Lestari'},
+  {id:'3271010501880005',name:'Eko Prasetyo'},
+  {id:'3271010601960006',name:'Fitria Handayani'},
+  {id:'3271010701830007',name:'Gunawan Wibowo'},
+  {id:'3271010801910008',name:'Hana Permata'},
+  {id:'3271010901870009',name:'Irwan Kusuma'},
+  {id:'3271011001940010',name:'Juliana Putri'},
+  {id:'3271011101800011',name:'Krisna Bayu'},
+  {id:'3271011201790012',name:'Lina Marlina'},
+  {id:'3271011301850013',name:'Muhammad Rizki'},
+  {id:'3271011401920014',name:'Nurul Hidayah'},
+  {id:'3271011501880015',name:'Oscar Pratama'},
+  {id:'3271011601960016',name:'Putri Anjani'},
+  {id:'3271011701830017',name:'Qori Ramadhan'},
+  {id:'3271011801910018',name:'Rina Wijaya'},
+  {id:'3271011901870019',name:'Suprianto'},
+  {id:'3271012001940020',name:'Tari Kusumawati'},
+  {id:'3271012101800021',name:'Udin Saefudin'},
+  {id:'3271012201790022',name:'Vera Octaviani'},
+  {id:'3271012301850023',name:'Wahyu Nugroho'},
+  {id:'3271012401920024',name:'Xenia Maulida'},
+  {id:'3271012501880025',name:'Yusuf Habibi'},
+  {id:'3271012601960026',name:'Zara Fatimah'},
+  {id:'3271012701830027',name:'Arif Budiman'},
+  {id:'3271012801910028',name:'Bella Saraswati'},
+  {id:'3271012901870029',name:'Cecep Nurdin'},
+  {id:'3271013001940030',name:'Diana Sari'},
+];
+
+let registrations = JSON.parse(localStorage.getItem('mcu_reg') || '[]');
+let selP = null, selD = null, curFilter = 'all';
+
+function save() { localStorage.setItem('mcu_reg', JSON.stringify(registrations)); }
+function qDate(d) { return registrations.filter(r=>r.date===d).length; }
+
+function renderDates() {
+  const g = document.getElementById('dgrid');
+  g.innerHTML = '';
+  DATES.forEach(d => {
+    const c = qDate(d), rem = QUOTA - c, full = rem === 0, warn = rem <= 20 && !full;
+    const el = document.createElement('div');
+    el.className = 'date-card' + (selD===d?' selected':'') + (full?' full':'');
+    el.innerHTML = `<div class="date-day">${d}</div><div class="date-month">${MONTH}</div>
+      <div class="date-quota ${full?'q-full':warn?'q-warn':'q-ok'}">${full?'Penuh':rem+' sisa'}</div>`;
+    if(!full) el.onclick = () => { selD=d; renderDates(); checkSubmit(); };
+    g.appendChild(el);
+  });
+}
+
+function checkSubmit() {
+  document.getElementById('sbtn').disabled = !(selP && selD);
+}
+
+function renderDD(q) {
+  const ddl = document.getElementById('ddl');
+  const taken = registrations.map(r=>r.id);
+  const res = participants.filter(p => !taken.includes(p.id) && (p.id.includes(q) || p.name.toLowerCase().includes(q.toLowerCase())));
+  if(!res.length) {
+    ddl.innerHTML = '<div class="dropdown-empty">Tidak ditemukan / sudah terdaftar</div>';
+  } else {
+    ddl.innerHTML = res.slice(0,8).map(p=>`<div class="dropdown-item" onmousedown="pickP('${p.id}')">
+      <div class="did">${p.id}</div><div class="dname">${p.name}</div></div>`).join('');
+  }
+  ddl.style.display = 'block';
+}
+
+function pickP(id) {
+  selP = participants.find(p=>p.id===id);
+  if(!selP) return;
+  document.getElementById('search').value = selP.id;
+  document.getElementById('ddl').style.display = 'none';
+  document.getElementById('iid').textContent = selP.id;
+  document.getElementById('iname').textContent = selP.name;
+  document.getElementById('pinfo').style.display = 'block';
+  checkSubmit();
+}
+
+document.getElementById('search').addEventListener('input', function() {
+  selP = null;
+  document.getElementById('pinfo').style.display = 'none';
+  checkSubmit();
+  if(this.value.length > 0) renderDD(this.value);
+  else document.getElementById('ddl').style.display = 'none';
+});
+
+document.getElementById('search').addEventListener('focus', function() {
+  if(this.value.length > 0) renderDD(this.value);
+});
+
+document.addEventListener('click', e => {
+  if(!document.getElementById('sw').contains(e.target))
+    document.getElementById('ddl').style.display = 'none';
+});
+
+function submitForm() {
+  if(!selP || !selD) return;
+  if(registrations.find(r=>r.id===selP.id)) { alert('Peserta sudah terdaftar!'); return; }
+  if(qDate(selD)>=QUOTA) { alert('Kuota tanggal ini sudah penuh!'); return; }
+  const ts = new Date().toLocaleString('id-ID');
+  registrations.push({id:selP.id, name:selP.name, date:selD, ts});
+  save();
+  document.getElementById('sbox').innerHTML = `<div class="success-box">
+    <div class="success-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="success-title">Pendaftaran Berhasil!</div>
+    <p class="success-detail"><strong>${selP.name}</strong> terdaftar untuk MCU tanggal <strong>${selD} ${MONTH}</strong>.</p>
+    <button class="btn btn-outline" onclick="resetForm()">Daftar Peserta Lain</button>
+  </div>`;
+  document.getElementById('form-card').style.display = 'none';
+  document.getElementById('sbox').style.display = 'block';
+}
+
+function resetForm() {
+  selP=null; selD=null;
+  document.getElementById('search').value='';
+  document.getElementById('pinfo').style.display='none';
+  document.getElementById('sbox').style.display='none';
+  document.getElementById('form-card').style.display='block';
+  renderDates(); checkSubmit();
+}
+
+function switchTab(t) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+t).classList.add('active');
+  document.querySelectorAll('.tab')[t==='form'?0:1].classList.add('active');
+  if(t==='admin') renderAdmin();
+}
+
+function renderAdmin() {
+  const total = registrations.length;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-rem').textContent = (QUOTA*4)-total;
+  document.getElementById('s-all').textContent = participants.length;
+  document.getElementById('qbars').innerHTML = DATES.map((d,i)=>{
+    const c=qDate(d), pct=Math.round((c/QUOTA)*100);
+    return `<div class="quota-row">
+      <span class="quota-label">${d} ${MONTH}</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${BAR_COLORS[i]};"></div></div>
+      <span class="quota-count">${c}/${QUOTA}</span></div>`;
+  }).join('');
+  renderTable();
+}
+
+function setFilter(f, el) {
+  curFilter = f;
+  document.querySelectorAll('.f-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const data = curFilter==='all' ? registrations : registrations.filter(r=>r.date==curFilter);
+  document.getElementById('empty-lbl').style.display = data.length?'none':'block';
+  const bc = {11:'b11',12:'b12',13:'b13',14:'b14'};
+  document.getElementById('atbody').innerHTML = data.map((r,i)=>`<tr>
+    <td style="color:var(--text-secondary)">${i+1}</td>
+    <td style="font-size:12px;">${r.id}</td>
+    <td>${r.name}</td>
+    <td><span class="badge ${bc[r.date]}">${r.date} Jul</span></td>
+  </tr>`).join('');
+}
+
+renderDates();
+</script>
+</body>
+</html>
